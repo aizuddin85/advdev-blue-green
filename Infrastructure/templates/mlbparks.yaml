@@ -1,0 +1,221 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: nationalparks
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 12
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: nationalparks
+      deploymentconfig: nationalparks
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      recreateParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        post:
+          execNewPod:
+            command:
+            - curl
+            - http://nationalparks.${GUID}-parks-dev.svc:8080/ws/data/load/
+            containerName: nationalparks
+          failurePolicy: Ignore
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: nationalparks
+          deploymentconfig: nationalparks
+      spec:
+        containers:
+        - env:
+          - name: APPNAME
+            valueFrom:
+              configMapKeyRef:
+                key: APPNAME
+                name: nationalparks
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PASSWORD
+                name: mongodb-configs
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PORT
+                name: mongodb-configs
+          - name: DB_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: DB_USERNAME
+                name: mongodb-configs
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: DB_HOST
+                name: mongodb-configs
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: DB_NAME
+                name: mongodb-configs
+          image: docker-registry.default.svc:5000/${GUID}-parks-dev/nationalparks:latest
+          imagePullPolicy: Always
+          livenessProbe:
+            exec:
+              command:
+              - echo
+              - ok
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: nationalparks
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ws/healthz/
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: nationalparks
+    name: nationalparks
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    - name: 8778-tcp
+      port: 8778
+      protocol: TCP
+      targetPort: 8778
+    selector:
+      app: nationalparks
+      deploymentconfig: nationalparks
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  data:
+    DB_HOST: ${MONGODB_HOST}
+    DB_NAME: ${MONGODB_DBNAME}
+    DB_PASSWORD: ${MONGODB_PASS}
+    DB_PORT: ${MONGODB_PORT}
+    DB_USERNAME: ${MONGODB_USER}
+  kind: ConfigMap
+  metadata:
+    name: mongodb-configs
+- apiVersion: v1
+  data:
+    APPNAME: ${APPNAME}
+  kind: ConfigMap
+  metadata:
+    name: nationalparks
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      type: parksmap-backend
+    name: nationalparks
+  spec:
+    host: nationalparks-${GUID}-parks-dev.apps.na311.openshift.opentlc.com
+    port:
+      targetPort: 8080-tcp
+    to:
+      kind: Service
+      name: nationalparks
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- description: GUID for the project
+  displayName: Project GUID
+  name: GUID
+  required: true
+  value: 90cd
+- description: MongoDB User
+  displayName: MongoDB User
+  name: MONGODB_USER
+  required: true
+  value: mongodb
+- description: MongoDB Password
+  displayName: MongoDB Password
+  name: MONGODB_PASS
+  required: true
+  value: mongodb
+- description: MongoDB DB Name
+  displayName: MongoDB DB Name
+  name: MONGODB_DBNAME
+  required: true
+  value: parks
+- description: MongoDB Host
+  displayName: MongoDB Host
+  name: MONGODB_HOST
+  required: true
+  value: mongodb
+- description: MongoDB Port
+  displayName: MongoDB Port
+  name: MONGODB_PORT
+  required: true
+  value: "27017"
+- description: AppName
+  displayName: AppName
+  name: APPNAME
+  required: true
+  value: "National Parks (Dev)"
