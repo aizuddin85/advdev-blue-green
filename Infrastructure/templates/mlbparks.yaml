@@ -2,7 +2,7 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: nationalparks
+  name: mlbparks
 objects:
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
@@ -12,14 +12,14 @@ objects:
     creationTimestamp: null
     generation: 12
     labels:
-      app: nationalparks
-    name: nationalparks
+      app: mlbparks
+    name: mlbparks
   spec:
     replicas: 1
     revisionHistoryLimit: 10
     selector:
-      app: nationalparks
-      deploymentconfig: nationalparks
+      app: mlbparks
+      deploymentconfig: mlbparks
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -33,8 +33,8 @@ objects:
           execNewPod:
             command:
             - curl
-            - http://nationalparks.${GUID}-parks-dev.svc:8080/ws/data/load/
-            containerName: nationalparks
+            - http://mlbparks.${GUID}-parks-dev.svc:8080/ws/data/load/
+            containerName: mlbparks
           failurePolicy: Ignore
         timeoutSeconds: 600
         updatePeriodSeconds: 1
@@ -45,8 +45,8 @@ objects:
           openshift.io/generated-by: OpenShiftNewApp
         creationTimestamp: null
         labels:
-          app: nationalparks
-          deploymentconfig: nationalparks
+          app: mlbparks
+          deploymentconfig: mlbparks
       spec:
         containers:
         - env:
@@ -54,7 +54,7 @@ objects:
             valueFrom:
               configMapKeyRef:
                 key: APPNAME
-                name: nationalparks
+                name: mlbparks
           - name: DB_PASSWORD
             valueFrom:
               configMapKeyRef:
@@ -80,7 +80,7 @@ objects:
               configMapKeyRef:
                 key: DB_NAME
                 name: mongodb-configs
-          image: docker-registry.default.svc:5000/${GUID}-parks-dev/nationalparks:latest
+          image: docker-registry.default.svc:5000/${GUID}-parks-dev/mlbparks:latest
           imagePullPolicy: Always
           livenessProbe:
             exec:
@@ -91,7 +91,7 @@ objects:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
-          name: nationalparks
+          name: mlbparks
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -126,8 +126,8 @@ objects:
       openshift.io/generated-by: OpenShiftNewApp
     creationTimestamp: null
     labels:
-      app: nationalparks
-    name: nationalparks
+      app: mlbparks
+    name: mlbparks
   spec:
     ports:
     - name: 8080-tcp
@@ -143,8 +143,8 @@ objects:
       protocol: TCP
       targetPort: 8778
     selector:
-      app: nationalparks
-      deploymentconfig: nationalparks
+      app: mlbparks
+      deploymentconfig: mlbparks
     sessionAffinity: None
     type: ClusterIP
   status:
@@ -164,7 +164,7 @@ objects:
     APPNAME: ${APPNAME}
   kind: ConfigMap
   metadata:
-    name: nationalparks
+    name: mlbparks
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
@@ -173,14 +173,14 @@ objects:
     creationTimestamp: null
     labels:
       type: parksmap-backend
-    name: nationalparks
+    name: mlbparks
   spec:
-    host: nationalparks-${GUID}-parks-dev.apps.na311.openshift.opentlc.com
+    host: mlbparks-${GUID}-parks-dev.apps.na311.openshift.opentlc.com
     port:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: nationalparks
+      name: mlbparks
       weight: 100
     wildcardPolicy: None
 parameters:
