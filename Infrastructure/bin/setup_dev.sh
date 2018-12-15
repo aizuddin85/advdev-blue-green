@@ -50,5 +50,4 @@ oc start-build parksmap --from-dir=../../ParksMap -n ${GUID}-parks-dev --follow 
 # Always tag the newest version as latest, so there will be easy to manage DC and switching image when necessary
 oc tag ${GUID}-parks-dev/parksmap:0.0-0 ${GUID}-parks-dev/parksmap:latest -n ${GUID}-parks-dev
 # Application objects definition nicely put in the template.
-oc process -f ../templates/parksmap.yaml | oc create -f -
-
+oc process -f ../templates/parksmap.yaml --param="APPNAME=ParksMap (Dev)" | oc create -f  - -n ${GUID}-parks-dev

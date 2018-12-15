@@ -46,16 +46,16 @@ objects:
               configMapKeyRef:
                 key: APPNAME
                 name: parksmap
-        - image: docker-registry.default.svc:5000/90cd-parks-dev/parksmap:latest
-          imagePullPolicy: Always
+          image: docker-registry.default.svc:5000/90cd-parks-dev/parksmap:latest
+          imagePullPolicy: IfNotPresent
           name: parksmap
           ports:
-          - containerPort: 8080
-            protocol: TCP
-          - containerPort: 8443
-            protocol: TCP
-          - containerPort: 8778
-            protocol: TCP
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+            - containerPort: 8778
+              protocol: TCP
           readinessProbe:
             failureThreshold: 3
             httpGet:
@@ -137,6 +137,7 @@ objects:
       host: parksmap-90cd-parks-dev.apps.na311.openshift.opentlc.com
       routerName: router
       wildcardPolicy: None
+parameters:
 - description: AppName
   displayName: AppName
   name: APPNAME
