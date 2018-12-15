@@ -104,7 +104,7 @@ podTemplate(
           sh "oc rollout latest dc/mlbparks-blue -n ${GUID}-parks-prod"
         }
         if (destApp == "mlbparks-green"){
-          sh "oc patch route/mlbparks -p '{\"spec\":{\"to\":{\"app\":\"mlbparks-green\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc patch route/mlbparks -p '{\"spec\":{\"to\":{\"name\":\"mlbparks-green\"}}}\' -n ${GUID}-parks-prod"
           sh "oc rollout latest dc/mlbparks-green -n ${GUID}-parks-prod"
         }        
       }
