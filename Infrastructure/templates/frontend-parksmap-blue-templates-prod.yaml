@@ -12,14 +12,14 @@ objects:
     creationTimestamp: null
     generation: 12
     labels:
-      app: ${SERVICE_NAME}
-    name: ${SERVICE_NAME}
+      app: ${FRONTEND_SERVICENAME}
+    name: ${FRONTEND_SERVICENAME}
   spec:
     replicas: 1
     revisionHistoryLimit: 10
     selector:
-      app: ${SERVICE_NAME}
-      deploymentconfig: ${SERVICE_NAME}
+      app: ${FRONTEND_SERVICENAME}
+      deploymentconfig: ${FRONTEND_SERVICENAME}
     strategy:
       activeDeadlineSeconds: 21600
       recreateParams:
@@ -29,13 +29,6 @@ objects:
         intervalSeconds: 1
         maxSurge: 25%
         maxUnavailable: 25%
-        post:
-          execNewPod:
-            command:
-            - curl
-            - http://${SERVICE_NAME}.${GUID}-${MAIN_APPNAME}-${ENV}.svc:8080/ws/data/load/
-            containerName: ${SERVICE_NAME}
-          failurePolicy: Ignore
         timeoutSeconds: 600
         updatePeriodSeconds: 1
       type: Recreate
@@ -45,8 +38,8 @@ objects:
           openshift.io/generated-by: OpenShiftNewApp
         creationTimestamp: null
         labels:
-          app: ${SERVICE_NAME}
-          deploymentconfig: ${SERVICE_NAME}
+          app: ${FRONTEND_SERVICENAME}
+          deploymentconfig: ${FRONTEND_SERVICENAME}
       spec:
         containers:
         - env:
@@ -54,7 +47,7 @@ objects:
             valueFrom:
               configMapKeyRef:
                 key: APPNAME
-                name: ${SERVICE_NAME}
+                name: ${FRONTEND_SERVICENAME}
           - name: DB_PASSWORD
             valueFrom:
               configMapKeyRef:
@@ -96,7 +89,7 @@ objects:
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 1
-          name: ${SERVICE_NAME}
+          name: ${FRONTEND_SERVICENAME}
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -131,8 +124,8 @@ objects:
       openshift.io/generated-by: OpenShiftNewApp
     creationTimestamp: null
     labels:
-      app: ${SERVICE_NAME}
-    name: ${SERVICE_NAME}
+      app: ${FRONTEND_SERVICENAME}
+    name: ${FRONTEND_SERVICENAME}
   spec:
     ports:
     - name: 8080-tcp
@@ -148,7 +141,7 @@ objects:
       protocol: TCP
       targetPort: 8778
     selector:
-      app: ${SERVICE_NAME}
+      app: ${FRONTEND_SERVICENAME}
     sessionAffinity: None
     type: ClusterIP
   status:
@@ -158,7 +151,7 @@ objects:
     APPNAME: ${APPNAME}
   kind: ConfigMap
   metadata:
-    name: ${SERVICE_NAME}
+    name: ${FRONTEND_SERVICENAME}
 parameters:
 - description: GUID for the project
   displayName: Project GUID
@@ -172,7 +165,7 @@ parameters:
   value: "MLB Parks (Dev)"
 - description: Service Name
   displayName: Service Name
-  name: SERVICE_NAME
+  name: FRONTEND_SERVICENAME
   required: true
   value: mlbparks
 - description: Environment 

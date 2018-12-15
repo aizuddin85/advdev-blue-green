@@ -18,12 +18,15 @@ oc project ${GUID}-parks-prod
 # Give necessary RBAC access to ServiceAccounts.
 oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n ${GUID}-parks-prod
 oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-parks-prod -n ${GUID}-parks-dev
-oc policy add-role-to-user view --serviceaccount=default -n ${GUID}-parks-dev
+oc policy add-role-to-user view --serviceaccount=default -n ${GUID}-parks-prod
 
 # Create mongodb services from template.
 oc create -f ./Infrastructure/templates/mongodb-prod-svc.yaml -n ${GUID}-parks-prod
 # Create mongodb StatefulSets from template.
 oc create -f ./Infrastructure/templates/mongodb-prod-sts.yaml -n ${GUID}-parks-prod
+
+echo "Sleeping for 30 seconds for MongoDB to get ready..."
+sleep 30
 
 # Create Backend service from common backend template. This will hold as placeholder for Pipeline.
 oc process -f ./Infrastructure/templates/backend-mlbparks-green-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-green.params | oc create  -f - -n ${GUID}-parks-prod
