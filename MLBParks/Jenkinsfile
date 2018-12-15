@@ -73,7 +73,7 @@ podTemplate(
       stage("Deploying On Dev"){
         // Start to rollout latest image on Development.
         sh "oc rollout latest dc/mlbparks -n ${GUID}-parks-dev"
-
+      }
       stage("Copy Image to Nexus"){
         // Image pushing to Nexus using Skopeo. 
         sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:admin123 docker://docker-registry.default.svc.cluster.local:5000/${GUID}-parks-dev/mlbparks:${devTag} docker://nexus-registry.${GUID}-nexus.svc.cluster.local:5000/mlbparks:${devTag}"
