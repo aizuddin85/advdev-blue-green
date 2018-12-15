@@ -17,4 +17,4 @@ echo "Setting up Sonarqube in project $GUID-sonarqube"
 echo "Ensure running in correct namespace: $GUID-sonarqube..."
 oc project $GUID-sonarqube
 cd advdev-blue-green/Infrastructure/bin
-oc process -f ../templates/sonarqube.yaml --param-file=params_file/sonar.params | oc create -f -
+oc process -f ../templates/sonarqube.yaml --param-file=params_file/sonar.params | oc create -f - -n $GUID-sonarqube

@@ -31,6 +31,6 @@ echo "Setting up Nexus in project $GUID-nexus"
 # To be Implemented by Student
 oc project $GUID-nexus
 cd advdev-blue-green/Infrastructure/bin
-oc process -f ../templates/nexus3.yaml --param-file=params_file/nexus.params | oc create -f -
+oc process -f ../templates/nexus3.yaml --param-file=params_file/nexus.params | oc create -f - -n $GUID-nexus
 
 
