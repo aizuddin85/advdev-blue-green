@@ -29,7 +29,7 @@ podTemplate(
 
     // Checking out source.
     stage("Checking out source code") {
-      git branch: '40h', changelog: false, poll: false, url: 'https://github.com/aizuddin85/advdev_homework_template.git'
+      git branch: 'master', changelog: false, poll: false, url: 'https://github.com/aizuddin85/advdev-blue-green.git'
     }
 
     // For those stages below use this directory as contextDir and set build definition.

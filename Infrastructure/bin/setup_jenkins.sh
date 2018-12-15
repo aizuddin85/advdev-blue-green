@@ -38,8 +38,8 @@ oc new-build  -D $'FROM docker.io/openshift/jenkins-agent-maven-35-centos7:v3.11
       USER root\nRUN yum -y install skopeo && yum clean all\n
       USER 1001' --name=jenkins-slave-appdev -n ${GUID}-jenkins
 
-oc new-build ${REPO}#40h --name=mlbparks-pipeline --context-dir=./MLBParks -e GUID=${GUID} -e CLUSTER=${CLUSTER}
-oc new-build ${REPO}#40h --name=nationalparks-pipeline --context-dir=./Nationalparks -e GUID=${GUID} -e CLUSTER=${CLUSTER}
-oc new-build ${REPO}#40h --name=parksmap-pipeline --context-dir=./ParksMap -e GUID=${GUID} -e CLUSTER=${CLUSTER}
+oc new-build ${REPO}#master --name=mlbparks-pipeline --context-dir=./MLBParks -e GUID=${GUID} -e CLUSTER=${CLUSTER}
+oc new-build ${REPO}#master --name=nationalparks-pipeline --context-dir=./Nationalparks -e GUID=${GUID} -e CLUSTER=${CLUSTER}
+oc new-build ${REPO}#master --name=parksmap-pipeline --context-dir=./ParksMap -e GUID=${GUID} -e CLUSTER=${CLUSTER}
 
 
