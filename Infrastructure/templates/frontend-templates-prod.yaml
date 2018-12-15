@@ -97,8 +97,8 @@ objects:
       openshift.io/generated-by: OpenShiftNewApp
     creationTimestamp: null
     labels:
-      app: ${ROUTE_NAME}
-    name: ${ROUTE_NAME}
+      app: ${FRONTEND_SERVICENAME}
+    name: ${FRONTEND_SERVICENAME}
   spec:
     ports:
     - name: 8080-tcp
@@ -132,7 +132,7 @@ objects:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: ${ROUTE_NAME}
+      name: ${FRONTEND_SERVICENAME}
       weight: 100
     wildcardPolicy: None
 parameters:

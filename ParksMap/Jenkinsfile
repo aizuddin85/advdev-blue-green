@@ -97,11 +97,11 @@ podTemplate(
         // Based on the destApp patch the service to activate new Blue or Green selector and rollout new deployment
         sh "oc set image dc/${destApp} ${destApp}=docker-registry.default.svc:5000/${GUID}-parks-dev/${destApp}:latest -n ${GUID}-parks-prod"
         if (destApp == "parksmap-blue"){
-          sh "oc patch svc/parksmap -p '{\"spec\":{\"selector\":{\"app\":\"parksmap-blue\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc patch route/parksmap -p '{\"spec\":{\"to\":{\"name\":\"parksmap-blue\"}}}\' -n ${GUID}-parks-prod"
           sh "oc rollout latest dc/parksmap-blue -n ${GUID}-parks-prod"
         }
         if (destApp == "parksmap-green"){
-          sh "oc patch svc/parksmap -p '{\"spec\":{\"selector\":{\"app\":\"parksmap-green\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc patch route/parksmap -p '{\"spec\":{\"to\":{\"name\":\"parksmap-green\"}}}\' -n ${GUID}-parks-prod"
           sh "oc rollout latest dc/parksmap-green -n ${GUID}-parks-prod"
         } 
       }
