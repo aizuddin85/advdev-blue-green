@@ -80,7 +80,7 @@ podTemplate(
       }
       stage("Blue/Green Production Deployment"){
         // Determine which selector is currently active in the service.
-        activeApp = sh(returnStdout: true, script: "oc get svc mlbparks -n \${GUID}-parks-prod -o jsonpath='{ .spec.selector.app }'").trim()
+        activeApp = sh(returnStdout: true, script: "oc get route mlbparks -n \${GUID}-parks-prod -o jsonpath='{ .spec.to.name }'").trim()
 
         // Set proper destApp based on service active selector and for the sake of verbosity and peace of mind, print it out.
         if (activeApp == "mlbparks-green"){
