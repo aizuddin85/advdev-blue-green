@@ -80,7 +80,7 @@ podTemplate(
       }
       stage("Blue/Green Production Deployment"){
         // Determine which selector is currently active in the servi
-        activeApp = sh(returnStdout: true, script: "oc get route nationalparks -n \${GUID}-parks-prod -o jsonpath='{ .spec.to.name }'").trim()
+        activeApp = sh(returnStdout: true, script: "oc get svc nationalparks -n \${GUID}-parks-prod -o jsonpath='{ .spec.selector.app }'").trim()
 
         // Set proper destApp based on service active selector and for the sake of verbosity and peace of mind, print it ou
         if (activeApp == "nationalparks-green"){
@@ -100,11 +100,11 @@ podTemplate(
 
         // Based on the destApp patch the service to activate new Blue or Green selector and rollout new deployment
         if (destApp == "nationalparks-blue"){
-          sh "oc patch route/nationalparks -p '{\"spec\":{\"to\":{\"name\":\"nationalparks-blue\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc patch svc/nationalparks -p '{\"spec\":{\"selector\":{\"app\":\"nationalparks-blue\"}}}\' -n ${GUID}-parks-prod"
           sh "oc rollout latest dc/nationalparks-blue -n ${GUID}-parks-prod"
         }
         if (destApp == "nationalparks-green"){
-          sh "oc patch route/nationalparks -p '{\"spec\":{\"to\":{\"name\":\"nationalparks-green\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc patch svc/nationalparks -p '{\"spec\":{\"selector\":{\"app\":\"nationalparks-green\"}}}\' -n ${GUID}-parks-prod"
           sh "oc rollout latest dc/nationalparks-green -n ${GUID}-parks-prod"
         }        
       }
