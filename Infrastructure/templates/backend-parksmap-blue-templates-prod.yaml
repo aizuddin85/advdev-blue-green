@@ -2,7 +2,7 @@ apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: backend-templates-prod
+  name: frontend-parksmap-blue-templates-prod
 objects:
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
@@ -155,76 +155,16 @@ objects:
     loadBalancer: {}
 - apiVersion: v1
   data:
-    DB_HOST: ${MONGODB_HOST}
-    DB_NAME: ${MONGODB_DBNAME}
-    DB_PASSWORD: ${MONGODB_PASS}
-    DB_PORT: ${MONGODB_PORT}
-    DB_USERNAME: ${MONGODB_USER}
-    DB_REPLICASET: ${MONGODB_RSNAME}
-  kind: ConfigMap
-  metadata:
-    name: mongodb-configs
-- apiVersion: v1
-  data:
     APPNAME: ${APPNAME}
   kind: ConfigMap
   metadata:
     name: ${SERVICE_NAME}
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    annotations:
-      openshift.io/host.generated: "true"
-    creationTimestamp: null
-    labels:
-      type: ${ROUTE_BACKEND_NAME}
-      app: ${ROUTE_NAME}
-    name: ${ROUTE_NAME}
-  spec:
-    host: ${ROUTE_NAME}-${GUID}-${MAIN_APPNAME}-${ENV}.apps.na311.openshift.opentlc.com
-    port:
-      targetPort: 8080-tcp
-    to:
-      kind: Service
-      name: ${SERVICE_NAME}
-      weight: 100
-    wildcardPolicy: None
 parameters:
 - description: GUID for the project
   displayName: Project GUID
   name: GUID
   required: true
   value: 90cd
-- description: MongoDB User
-  displayName: MongoDB User
-  name: MONGODB_USER
-  required: true
-  value: mongodb
-- description: MongoDB Password
-  displayName: MongoDB Password
-  name: MONGODB_PASS
-  required: true
-  value: mongodb
-- description: MongoDB DB Name
-  displayName: MongoDB DB Name
-  name: MONGODB_DBNAME
-  required: true
-  value: parks
-- description: MongoDB Host
-  displayName: MongoDB Host
-  name: MONGODB_HOST
-  required: true
-  value: mongodb
-- description: MongoDB Port
-  displayName: MongoDB Port
-  name: MONGODB_PORT
-  required: true
-  value: "27017"
-- description: MongoDB RS Name
-  displayName: MongoDB RS Name
-  name: MONGODB_RSNAME
-  required: true
-  value: rs0
 - description: AppName
   displayName: AppName
   name: APPNAME

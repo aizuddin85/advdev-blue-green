@@ -20,17 +20,17 @@ oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n
 oc policy add-role-to-group system:image-puller system:serviceaccounts:${GUID}-parks-prod -n ${GUID}-parks-dev
 oc policy add-role-to-user view --serviceaccount=default -n ${GUID}-parks-dev
 
-# Create mongo services from template.
+# Create mongodb services from template.
 oc create -f ./Infrastructure/templates/mongodb-prod-svc.yaml -n ${GUID}-parks-prod
-# Create mongo StatefulSets from template.
+# Create mongodb StatefulSets from template.
 oc create -f ./Infrastructure/templates/mongodb-prod-sts.yaml -n ${GUID}-parks-prod
 
 # Create Backend service from common backend template. This will hold as placeholder for Pipeline.
-oc process -f ./Infrastructure/templates/backend-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-green.params | oc create  -f - -n ${GUID}-parks-prod
-oc process -f ./Infrastructure/templates/backend-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-blue.params | oc create  -f - -n ${GUID}-parks-prod
-oc process -f ./Infrastructure/templates/backend-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/nationalparks-green.params | oc create  -f - -n ${GUID}-parks-prod
-oc process -f ./Infrastructure/templates/backend-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/nationalparks-blue.params | oc create  -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/backend-mlbparks-green-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-green.params | oc create  -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/backend-mlbparks-blue-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-blue.params | oc create  -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/backend-nationalparks-green-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/nationalparks-green.params | oc create  -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/backend-nationalparks-blue-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/nationalparks-blue.params | oc create  -f - -n ${GUID}-parks-prod
 
 # Create Frontend service from template. This will hold as placeholder for Pipeline.
-oc process -f ./Infrastructure/templates/frontend-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-green.params | oc create -f - -n ${GUID}-parks-prod
-oc process -f ./Infrastructure/templates/frontend-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-blue.params | oc create -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/frontend-parksmap-green-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-green.params | oc create -f - -n ${GUID}-parks-prod
+oc process -f ./Infrastructure/templates/frontend-parksmap-blue-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-blue.params | oc create -f - -n ${GUID}-parks-prod

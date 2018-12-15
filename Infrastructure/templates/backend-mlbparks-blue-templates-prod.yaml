@@ -1,0 +1,242 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: backend-mlbparks-blue-templates-prod
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 12
+    labels:
+      app: ${SERVICE_NAME}
+    name: ${SERVICE_NAME}
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: ${SERVICE_NAME}
+      deploymentconfig: ${SERVICE_NAME}
+    strategy:
+      activeDeadlineSeconds: 21600
+      recreateParams:
+        timeoutSeconds: 1200
+      resources: {}
+      recreateParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        post:
+          execNewPod:
+            command:
+            - curl
+            - http://${SERVICE_NAME}.${GUID}-${MAIN_APPNAME}-${ENV}.svc:8080/ws/data/load/
+            containerName: ${SERVICE_NAME}
+          failurePolicy: Ignore
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Recreate
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: ${SERVICE_NAME}
+          deploymentconfig: ${SERVICE_NAME}
+      spec:
+        containers:
+        - env:
+          - name: APPNAME
+            valueFrom:
+              configMapKeyRef:
+                key: APPNAME
+                name: ${SERVICE_NAME}
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PASSWORD
+                name: mongodb-configs
+          - name: DB_PORT
+            valueFrom:
+              configMapKeyRef:
+                key: DB_PORT
+                name: mongodb-configs
+          - name: DB_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                key: DB_USERNAME
+                name: mongodb-configs
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                key: DB_HOST
+                name: mongodb-configs
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                key: DB_NAME
+                name: mongodb-configs
+          - name: DB_REPLICASET
+            valueFrom:
+              configMapKeyRef:
+                key: DB_REPLICASET
+                name: mongodb-configs
+          image: docker-registry.default.svc:5000/${GUID}-${MAIN_APPNAME}-${IMG_ENV}/${IMG_NAME}:${IMG_TAG}
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - echo
+              - ok
+            failureThreshold: 3
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: ${SERVICE_NAME}
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8778
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ws/healthz/
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: ${SERVICE_NAME}
+    name: ${SERVICE_NAME}
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    - name: 8443-tcp
+      port: 8443
+      protocol: TCP
+      targetPort: 8443
+    - name: 8778-tcp
+      port: 8778
+      protocol: TCP
+      targetPort: 8778
+    selector:
+      app: ${SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  data:
+    APPNAME: ${APPNAME}
+  kind: ConfigMap
+  metadata:
+    name: ${SERVICE_NAME}
+parameters:
+- description: GUID for the project
+  displayName: Project GUID
+  name: GUID
+  required: true
+  value: 90cd
+- description: MongoDB User
+  displayName: MongoDB User
+  name: MONGODB_USER
+  required: true
+  value: mongodb
+- description: MongoDB Password
+  displayName: MongoDB Password
+  name: MONGODB_PASS
+  required: true
+  value: mongodb
+- description: MongoDB DB Name
+  displayName: MongoDB DB Name
+  name: MONGODB_DBNAME
+  required: true
+  value: parks
+- description: MongoDB Host
+  displayName: MongoDB Host
+  name: MONGODB_HOST
+  required: true
+  value: mongodb
+- description: MongoDB Port
+  displayName: MongoDB Port
+  name: MONGODB_PORT
+  required: true
+  value: "27017"
+- description: MongoDB RS Name
+  displayName: MongoDB RS Name
+  name: MONGODB_RSNAME
+  required: true
+  value: rs0
+- description: AppName
+  displayName: AppName
+  name: APPNAME
+  required: true
+  value: "MLB Parks (Dev)"
+- description: Service Name
+  displayName: Service Name
+  name: SERVICE_NAME
+  required: true
+  value: mlbparks
+- description: Environment 
+  displayName: Environment
+  name: ENV
+  required: true
+  value: dev
+- description: Service Image Pull Environment 
+  displayName: Service Image Pull Environment
+  name: IMG_ENV
+  required: true
+  value: dev
+- description: Service Image Name 
+  displayName: Service Image Name
+  name: IMG_NAME
+  required: true
+  value: mlbparks
+- description: Service Image Tag 
+  displayName: Service Image Tag
+  name: IMG_TAG
+  required: true
+  value: latest
+- description: Route Target 
+  displayName: Route Target
+  name: ROUTE_NAME
+  required: true
+  value: mlbparks
+- description: Backend Target 
+  displayName: Backend Target
+  name: ROUTE_BACKEND_NAME
+  required: true
+  value: parksmap-backend
+- description: Main Application Name
+  displayName: Main Application Name
+  name: MAIN_APPNAME
+  required: true
+  value: parks
