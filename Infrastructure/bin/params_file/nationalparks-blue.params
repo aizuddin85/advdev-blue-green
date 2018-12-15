@@ -1,0 +1,6 @@
+ENV=prod
+IMG_ENV=dev
+SERVICE_NAME=nationalparks-blue
+APPNAME="National Parks (Blue)"
+ROUTE_NAME=nationalparks
+IMG_NAME=nationalparks

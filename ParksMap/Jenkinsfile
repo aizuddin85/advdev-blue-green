@@ -1,0 +1,125 @@
+// Jenkinsfile for ParksMap
+podTemplate(
+  label: "skopeo-pod",
+  cloud: "openshift",
+  inheritFrom: "maven",
+  containers: [
+    containerTemplate(
+      name: "jnlp",
+      image: "docker-registry.default.svc:5000/${GUID}-jenkins/jenkins-slave-appdev",
+      resourceRequestMemory: "1Gi",
+      resourceLimitMemory: "2Gi"
+    )
+  ]
+) {
+  node('skopeo-pod') {
+    def GUID = '90cd'
+    def CLUSTER = 'na311'
+    echo "GUID: ${GUID}"
+    echo "CLUSTER: ${CLUSTER}"
+
+    // Your Pipeline Code goes here. Make sure to use the ${GUID} and ${CLUSTER} parameters where appropriate
+    // You need to build the application in directory `ParksMap`.
+    // Also copy "../nexus_settings.xml" to your build directory
+    // and replace 'GUID' in the file with your ${GUID} to point to >your< Nexus instance
+
+    // Defining base Maven command.
+    def mvnCmd = "mvn -s ../nexus_settings.xml"
+    
+    // Checking out source.
+    stage("Checking out source code") {
+      git branch: '40h', changelog: false, poll: false, url: 'https://github.com/aizuddin85/advdev_homework_template.git'
+    }
+
+    // For those stages below use this directory as contextDir and set build definition.
+    dir('ParksMap'){
+      def groupId    = getGroupIdFromPom("pom.xml")
+      def artifactId = getArtifactIdFromPom("pom.xml")
+      def version    = getVersionFromPom("pom.xml")
+      def devTag  = "${version}-${BUILD_NUMBER}"
+      def prodTag = "${version}"
+      def destApp   = "parksmap-green"
+      def activeApp = ""
+      stage("Building Target"){
+        // Start to build springboot binary from the source code
+        sh "${mvnCmd} clean package spring-boot:repackage -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
+      }
+      stage('Run Unit tests'){
+        // Executing unit test
+        sh "${mvnCmd} test"
+      }
+      stage("Code Analysis"){
+        // Executing coverage test using SonarQube
+        sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-${GUID}-sonarqube.apps.na311.openshift.opentlc.com/ -Dsonar.projectName=${JOB_BASE_NAME}-${devTag}"
+      }
+      stage("Publish Artifacts"){
+        // Publish binary to Nexus for repository and later use
+        sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::http://nexus3.${GUID}-nexus.svc.cluster.local:8081/repository/releases"
+      }
+      stage("Build & Tag Image"){
+        // Delete old build definition and always exit True regardless exit code.
+        sh "oc delete bc parksmap -n ${GUID}-parks-dev || true"
+
+        // Defining new build with new output target using Nexus mirror.
+        sh "oc new-build --name=parksmap --binary=true  redhat-openjdk18-openshift:1.2 --to=${GUID}-parks-dev/parksmap:${devTag} -e MAVEN_MIRROR_URL=http://nexus3-${GUID}-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public -n ${GUID}-parks-dev"
+        
+        // Start to build the new build definition using artifact uploaded to Nexus above.
+        sh "oc start-build parksmap --follow --from-file=http://nexus3.${GUID}-nexus.svc.cluster.local:8081/repository/releases/com/openshift/evg/roadshow/parksmap/${version}/parksmap-${version}.jar -n ${GUID}-parks-dev"
+        
+        // Tag image with latest build number as latest image.
+        sh "oc tag parksmap:${devTag} parksmap:latest -n ${GUID}-parks-dev"
+      }
+      stage("Deploying On Dev"){
+        // Start to rollout latest image on Development.
+        sh "oc rollout latest dc/parksmap -n ${GUID}-parks-dev"
+      }
+      stage("Copy Image to Nexus"){
+        // Image pushing to Nexus using Skopeo
+        sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:admin123 docker://docker-registry.default.svc.cluster.local:5000/${GUID}-parks-dev/parksmap:${devTag} docker://nexus-registry.${GUID}-nexus.svc.cluster.local:5000/parksmap:${devTag}"
+      }
+      stage("Blue/Green Production Deployment"){
+        // Determine which selector is currently active in the service.
+        activeApp = sh(returnStdout: true, script: "oc get svc parksmap -n \${GUID}-parks-prod -o jsonpath='{ .spec.selector.app }'").trim()
+
+        // Set proper destApp based on service active selector and for the sake of verbosity and peace of mind, print it out
+        if (activeApp == "parksmap-green"){
+          destApp = "parksmap-blue"
+        }
+        echo "Active Application:          " + activeApp
+        echo "Destionation Application:    " + destApp
+
+        // Remove any trigger, we want pipeline controlling the deployment and rollout.
+        sh "oc set triggers dc/${destApp} --remove-all -n ${GUID}-parks-prod"
+
+        // Now tag latest dev image tag as latest production deployment image. This preserve 'version'-->'latest' relationship for each Blue/Green.
+        sh "oc tag ${GUID}-parks-dev/parksmap:${devTag} ${GUID}-parks-dev/${destApp}:latest -n ${GUID}-parks-dev"
+
+        // Based on the destApp patch the service to activate new Blue or Green selector and rollout new deployment
+        sh "oc set image dc/${destApp} ${destApp}=docker-registry.default.svc:5000/${GUID}-parks-dev/${destApp}:latest -n ${GUID}-parks-prod"
+        if (destApp == "parksmap-blue"){
+          sh "oc patch svc/parksmap -p '{\"spec\":{\"selector\":{\"app\":\"parksmap-blue\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc rollout latest dc/parksmap-blue -n ${GUID}-parks-prod"
+        }
+        if (destApp == "parksmap-green"){
+          sh "oc patch svc/parksmap -p '{\"spec\":{\"selector\":{\"app\":\"parksmap-green\"}}}\' -n ${GUID}-parks-prod"
+          sh "oc rollout latest dc/parksmap-green -n ${GUID}-parks-prod"
+        } 
+      }
+    }
+  }
+}
+
+// Convenience Functions to read variables from the pom.xml
+// Do not change anything below this line.
+def getVersionFromPom(pom) {
+  def matcher = readFile(pom) =~ '<version>(.+)</version>'
+  matcher ? matcher[0][1] : null
+}
+def getGroupIdFromPom(pom) {
+  def matcher = readFile(pom) =~ '<groupId>(.+)</groupId>'
+  matcher ? matcher[0][1] : null
+}
+def getArtifactIdFromPom(pom) {
+  def matcher = readFile(pom) =~ '<artifactId>(.+)</artifactId>'
+  matcher ? matcher[0][1] : null
+}

@@ -1,0 +1,684 @@
+{
+  "kind": "Template",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "mlbparks",
+    "annotations": {
+      "iconClass": "icon-eap",
+      "description": "Application template MLBParks backend running on Wildfly and using mongodb",
+      "openshift.io/display-name": "MLBParks",
+      "openshift.io/long-description": "MLBParks AdvDev 40h homework.",
+      "openshift.io/provider-display-name": "MLBParks: 40h homework",
+      "tags": "40h,90cd,MLBParks"
+    }
+  },
+  "labels": {
+    "createdBy": "mlbparks-advdev-template"
+  },
+  "parameters": [
+    {
+      "description": "The name for the mlbparks application.",
+      "displayName": "Application Name",
+      "name": "APPLICATION_NAME",
+      "value": "mlbparks",
+      "required": true
+    },
+    {
+      "description": "Custom hostname for mlbparks application.  Leave blank for default hostname, e.g.: <application-name>.<project>.<default-domain-suffix>",
+      "displayName": "Application route",
+      "name": "APPLICATION_HOSTNAME"
+    },
+    {
+      "description": "The name for the mongodb application.",
+      "displayName": "Mongodb App",
+      "name": "MONGODB_APPLICATION_NAME",
+      "value": "mongodb-mlbparks",
+      "required": true
+    },
+    {
+      "description": "Git source URI for application",
+      "displayName": "Git source repository",
+      "name": "GIT_URI",
+      "value": "https://github.com/aizuddin85/advdev_homework_template.git",
+      "required": true
+    },
+    {
+      "description": "Git branch/tag reference",
+      "displayName": "Git branch/tag reference",
+      "name": "GIT_REF",
+      "value": "40h",
+      "required": true
+    },
+    {
+      "description": "Git contextdir reference",
+      "displayName": "Git contextdir reference",
+      "name": "GIT_CONTEXTDIR",
+      "value": "./MLBParks",
+      "required": true
+    },
+    {
+      "description": "Maven mirror url. If nexus is deployed locally, use nexus url (e.g. http://nexus.ci:8081/content/groups/public/)",
+      "displayName": "Maven mirror url",
+      "name": "MAVEN_MIRROR_URL",
+      "required": false
+    },
+    {
+      "description": "Database name",
+      "displayName": "Database name",
+      "name": "MONGODB_DATABASE",
+      "value": "mongodb",
+      "required": true
+    },
+    {
+      "description": "Database user name",
+      "displayName": "Database user name",
+      "name": "MONGODB_USER",
+      "from": "user[a-zA-Z0-9]{3}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "description": "Database user password",
+      "displayName": "Database user password",
+      "name": "MONGODB_PASSWORD",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "description": "Database admin password",
+      "displayName": "Database admin password",
+      "name": "MONGODB_ADMIN_PASSWORD",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "description": "Github trigger secret",
+      "displayName": "GitHub Trigger",
+      "name": "GITHUB_TRIGGER_SECRET",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "description": "Generic build trigger secret",
+      "displayName": "Generic Trigger",
+      "name": "GENERIC_TRIGGER_SECRET",
+      "from": "[a-zA-Z0-9]{8}",
+      "generate": "expression",
+      "required": true
+    },
+    {
+      "description": "Volume space available for data, e.g. 512Mi, 2Gi.",
+      "displayName": "Volume Capacity",
+      "name": "VOLUME_CAPACITY",
+      "required": true,
+      "value": "1Gi"
+    },
+    {
+      "description": "The name of the OpenShift Service exposed for the database.",
+      "displayName": "Database Service Name",
+      "name": "DATABASE_SERVICE_NAME",
+      "required": true,
+      "value": "mongodb"
+    }
+  ],
+  "objects": [
+    {
+      "kind": "ConfigMap",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "mlbparks",
+        "labels": {
+          "app": "adv-dev",
+          "component": "mlbparks",
+          "role": "config"
+        }
+      },
+      "data": {
+        "db.user": "${MONGODB_USER}",
+        "db.password": "${MONGODB_PASSWORD}",
+        "db.name": "${MONGODB_DATABASE}",
+        "db.properties": "db.user=${MONGODB_USER}\ndb.password=${MONGODB_PASSWORD}\ndb.name=${MONGODB_DATABASE}",
+        "application.properties": "spring.data.mongodb.uri=mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_APPLICATION_NAME}:27017/${MONGODB_DATABASE}"
+      }
+    },
+    {
+        "apiVersion": "v1",
+        "kind": "PersistentVolumeClaim",
+        "metadata": {
+            "name": "${DATABASE_SERVICE_NAME}"
+        },
+        "spec": {
+            "accessModes": [
+                "ReadWriteOnce"
+            ],
+            "resources": {
+                "requests": {
+                    "storage": "${VOLUME_CAPACITY}"
+                }
+            }
+        }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${MONGODB_APPLICATION_NAME}",
+        "labels": {
+         "app": "workshop",
+         "component": "mlbparks",
+         "role": "database"
+        }
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "mongo",
+            "protocol": "TCP",
+            "port": 27017,
+            "targetPort": 27017
+          }
+        ],
+        "selector": {
+          "deploymentConfig": "${MONGODB_APPLICATION_NAME}"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      }
+    },
+    {
+      "kind": "DeploymentConfig",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${MONGODB_APPLICATION_NAME}",
+        "labels": {
+         "app": "workshop",
+         "component": "mlbparks",
+         "role": "database"
+        }
+      },
+      "spec": {
+        "strategy": {
+          "type": "Recreate",
+          "recreateParams": {
+            "timeoutSeconds": 600
+          },
+          "resources": {}
+        },
+        "triggers": [
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "${MONGODB_APPLICATION_NAME}"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "namespace": "openshift",
+                "name": "mongodb:3.2"
+              }
+            }
+          },
+          {
+            "type": "ConfigChange"
+          }
+        ],
+        "replicas": 1,
+        "test": false,
+        "selector": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "database",
+          "deploymentConfig": "${MONGODB_APPLICATION_NAME}"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "workshop",
+              "component": "mlbparks",
+              "role": "database",
+              "deploymentConfig": "${MONGODB_APPLICATION_NAME}"
+            }
+          },
+          "spec": {
+            "volumes":  [
+                {
+                    "name": "mongodb-data",
+                    "persistentVolumeClaim": {
+                        "claimName": "mongodb"
+                    }
+                }],
+            "containers": [
+              {
+                "name": "${MONGODB_APPLICATION_NAME}",
+                "image": "${MONGODB_APPLICATION_NAME}",
+                "ports": [
+                  {
+                    "containerPort": 27017,
+                    "protocol": "TCP"
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "KUBERNETES_NAMESPACE",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "name": "MONGODB_USER",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.user"
+                      }
+                    }
+                  },
+                  {
+                    "name": "MONGODB_PASSWORD",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "MONGODB_DATABASE",
+                    "valueFrom": {
+                      "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.name"
+                      }
+                    }
+                  },
+                  {
+                    "name": "MONGODB_ADMIN_PASSWORD",
+                    "value": "${MONGODB_ADMIN_USER}"
+                  }
+                ],
+                "resources": {
+                  "limits": {
+                    "memory": "512Mi"
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "mongodb-data",
+                    "mountPath": "/var/lib/mongodb/data"
+                  }
+                ],
+                "livenessProbe": {
+                  "tcpSocket": {
+                    "port": 27017
+                  },
+                  "initialDelaySeconds": 30,
+                  "timeoutSeconds": 1,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "readinessProbe": {
+                  "exec": {
+                    "command": [
+                      "/bin/sh",
+                      "-i",
+                      "-c",
+                      "mongo 127.0.0.1:27017/$MONGODB_DATABASE -u $MONGODB_USER -p $MONGODB_PASSWORD --eval=\"quit()\""
+                    ]
+                  },
+                  "initialDelaySeconds": 3,
+                  "timeoutSeconds": 1,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext": {
+                  "capabilities": {},
+                  "privileged": false
+                }
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "securityContext": {}
+          }
+        }
+      }
+    },
+    {
+      "kind": "ImageStream",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "backend"
+         }
+      },
+      "spec": {
+        "tags": [
+          {
+            "name": "latest"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "BuildConfig",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "backend"
+         }
+      },
+      "spec": {
+        "triggers": [
+          {
+            "type": "GitHub",
+            "github": {
+              "secret": "${GITHUB_TRIGGER_SECRET}"
+            }
+          },
+          {
+            "type": "Generic",
+            "generic": {
+              "secret": "${GENERIC_TRIGGER_SECRET}"
+            }
+          },
+          {
+            "type": "ConfigChange"
+          },
+          {
+            "type": "ImageChange"
+          }
+        ],
+        "runPolicy": "Serial",
+        "source": {
+          "type": "Git",
+          "git": {
+            "uri": "${GIT_URI}",
+            "ref": "${GIT_REF}"
+          }
+        },
+        "strategy": {
+          "type": "Source",
+          "sourceStrategy": {
+            "from": {
+              "kind": "ImageStreamTag",
+              "namespace": "openshift",
+              "name": "jboss-eap70-openshift:1.6"
+            },
+            "env": [
+              {
+                "name": "MAVEN_ARGS",
+                "value": "clean package -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga"
+              },
+              {
+                "name": "MAVEN_MIRROR_URL",
+                "value": "${MAVEN_MIRROR_URL}"
+              }
+            ],
+            "incremental": false
+          }
+        },
+        "output": {
+          "to": {
+            "kind": "ImageStreamTag",
+            "name": "${APPLICATION_NAME}:latest"
+          }
+        },
+        "resources": {},
+        "postCommit": {}
+      }
+    },
+    {
+      "kind": "DeploymentConfig",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "backend"
+         }
+      },
+      "spec": {
+        "strategy": {
+          "type": "Recreate",
+          "recreateParams": {
+            "timeoutSeconds": 600,
+            "post": {
+              "failurePolicy": "Ignore",
+              "execNewPod": {
+                "command": [
+                  "curl",
+                  "-s",
+                  "http://${APPLICATION_NAME}:8080/ws/data/load"
+                ],
+                "containerName": "${APPLICATION_NAME}"
+              }
+            }
+          },
+          "resources": {}
+        },
+        "triggers": [
+          {
+            "type": "ConfigChange"
+          },
+          {
+            "type": "ImageChange",
+            "imageChangeParams": {
+              "automatic": true,
+              "containerNames": [
+                "${APPLICATION_NAME}"
+              ],
+              "from": {
+                "kind": "ImageStreamTag",
+                "name": "${APPLICATION_NAME}:latest"
+              }
+            }
+          }
+        ],
+        "replicas": 1,
+        "test": false,
+        "selector": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "database",
+          "deploymentConfig": "${APPLICATION_NAME}"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "workshop",
+              "component": "mlbparks",
+              "role": "database",
+              "deploymentConfig": "${APPLICATION_NAME}"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "name": "${APPLICATION_NAME}",
+                "image": "${APPLICATION_NAME}",
+                "ports": [
+                  {
+                      "name": "jolokia",
+                      "containerPort": 8778,
+                      "protocol": "TCP"
+                  },
+                  {
+                      "name": "http",
+                      "containerPort": 8080,
+                      "protocol": "TCP"
+                  },
+                  {
+                      "name": "ping",
+                      "containerPort": 8888,
+                      "protocol": "TCP"
+                  }
+                ],
+                "env": [
+                  {
+                    "name": "KUBERNETES_NAMESPACE",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace"
+                      }
+                    }
+                  },
+                  {
+                      "name": "OPENSHIFT_KUBE_PING_LABELS",
+                      "value": "component=${APPLICATION_NAME}"
+                  },
+                  {
+                      "name": "OPENSHIFT_KUBE_PING_NAMESPACE",
+                      "valueFrom": {
+                          "fieldRef": {
+                              "fieldPath": "metadata.namespace"
+                          }
+                      }
+                  },
+                  {
+                    "name": "DB_PORT",
+                    "value": "27017"
+                  },
+                  {
+                    "name": "DB_HOST",
+                    "value": "${MONGODB_APPLICATION_NAME}"
+                  },
+                  {
+                    "name": "DB_USERNAME",
+                    "valueFrom": {
+                     "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.user"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": {
+                     "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.password"
+                      }
+                    }
+                  },
+                  {
+                    "name": "DB_NAME",
+                    "valueFrom": {
+                     "configMapKeyRef": {
+                        "name": "mlbparks",
+                        "key": "db.name"
+                      }
+                    }
+                  }
+                ],
+                "resources": {},
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/ws/healthz/",
+                    "port": 8080,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 120,
+                  "timeoutSeconds": 1,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/ws/healthz/",
+                    "port": 8080,
+                    "scheme": "HTTP"
+                  },
+                  "initialDelaySeconds": 20,
+                  "timeoutSeconds": 1,
+                  "periodSeconds": 10,
+                  "successThreshold": 1,
+                  "failureThreshold": 3
+                },
+                "terminationMessagePath": "/dev/termination-log",
+                "imagePullPolicy": "IfNotPresent"
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "securityContext": {}
+          }
+        }
+      }
+    },
+    {
+      "kind": "Service",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "backend",
+          "type": "parksmap-backend"
+        },
+        "annotations": {
+          "service.alpha.openshift.io/dependencies": "[{\"name\":\"${MONGODB_APPLICATION_NAME}\",\"namespace\":\"\",\"kind\":\"Service\"}]"
+        }
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "8080-tcp",
+            "protocol": "TCP",
+            "port": 8080,
+            "targetPort": 8080
+          }
+        ],
+        "selector": {
+          "deploymentConfig": "${APPLICATION_NAME}"
+        },
+        "type": "ClusterIP",
+        "sessionAffinity": "None"
+      }
+    },
+    {
+      "kind": "Route",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "${APPLICATION_NAME}",
+        "labels": {
+          "app": "workshop",
+          "component": "mlbparks",
+          "role": "backend"
+        }
+      },
+      "spec": {
+        "host": "${APPLICATION_HOSTNAME}",
+        "to": {
+          "kind": "Service",
+          "name": "${APPLICATION_NAME}",
+          "weight": 100
+        },
+        "port": {
+          "targetPort": "8080-tcp"
+        }
+      }
+    }
+  ]
+}
+

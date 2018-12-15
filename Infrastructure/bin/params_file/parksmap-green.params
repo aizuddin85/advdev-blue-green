@@ -1,0 +1,6 @@
+ENV=prod
+IMG_ENV=dev
+APPNAME="ParksMap (Green)"
+FRONTEND_SERVICENAME=parksmap-green
+ROUTE_NAME=parksmap
+IMG_NAME=parksmap

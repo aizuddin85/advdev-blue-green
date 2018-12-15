@@ -1,0 +1,4 @@
+MAVEN_MIRROR_URL=http://nexus3-90cd-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public
+SOURCE_REPOSITORY_URL=https://github.com/aizuddin85/advdev_homework_template.git
+SOURCE_REPOSITORY_REF=40h
+CONTEXT_DIR=./ParksMap

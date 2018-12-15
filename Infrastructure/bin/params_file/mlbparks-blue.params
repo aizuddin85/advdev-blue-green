@@ -1,0 +1,6 @@
+ENV=prod
+IMG_ENV=dev
+SERVICE_NAME=mlbparks-blue
+APPNAME="MLB Parks (Blue)"
+ROUTE_NAME=mlbparks
+IMG_NAME=mlbparks
