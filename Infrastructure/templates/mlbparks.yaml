@@ -218,4 +218,4 @@ parameters:
   displayName: AppName
   name: APPNAME
   required: true
-  value: "National Parks (Dev)"
+  value: "MLB Parks (Dev)"
