@@ -33,7 +33,7 @@ objects:
           execNewPod:
             command:
             - curl
-            - http://${SERVICE_NAME}.${GUID}-${MAIN_APPNAME}-${ENV}.svc:8080/ws/data/load/
+            - http://${ROUTE_NAME}.${GUID}-${MAIN_APPNAME}-${ENV}.svc:8080/ws/data/load/
             containerName: ${SERVICE_NAME}
           failurePolicy: Ignore
         timeoutSeconds: 600
@@ -132,7 +132,7 @@ objects:
     creationTimestamp: null
     labels:
       app: ${SERVICE_NAME}
-    name: ${SERVICE_NAME}
+    name: ${ROUTE_NAME}
   spec:
     ports:
     - name: 8080-tcp
@@ -186,7 +186,7 @@ objects:
       targetPort: 8080-tcp
     to:
       kind: Service
-      name: ${SERVICE_NAME}
+      name: ${ROUTE_NAME}
       weight: 100
     wildcardPolicy: None
 parameters:

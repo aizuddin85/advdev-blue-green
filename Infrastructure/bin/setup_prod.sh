@@ -26,7 +26,7 @@ oc create -f ./Infrastructure/templates/mongodb-prod-svc.yaml -n ${GUID}-parks-p
 oc create -f ./Infrastructure/templates/mongodb-prod-sts.yaml -n ${GUID}-parks-prod
 
 echo "Sleeping for 30 seconds for MongoDB to get ready..."
-sleep 30
+#sleep 30
 
 # Create Backend service from common backend template. This will hold as placeholder for Pipeline.
 oc process -f ./Infrastructure/templates/backend-mlbparks-green-templates-prod.yaml  --param-file=./Infrastructure/bin/params_file/mlbparks-green.params | oc create  -f - -n ${GUID}-parks-prod
