@@ -40,6 +40,12 @@ objects:
           deploymentconfig: parksmap
       spec:
         containers:
+        - env:
+          - name: APPNAME
+            valueFrom:
+              configMapKeyRef:
+                key: APPNAME
+                name: parksmap
         - image: docker-registry.default.svc:5000/90cd-parks-dev/parksmap:latest
           imagePullPolicy: Always
           name: parksmap
@@ -70,6 +76,12 @@ objects:
         terminationGracePeriodSeconds: 30
     test: false
     triggers:
+- apiVersion: v1
+  data:
+    APPNAME: ${APPNAME}
+  kind: ConfigMap
+  metadata:
+    name: parksmap
 - apiVersion: v1
   kind: Service
   metadata:
@@ -125,3 +137,8 @@ objects:
       host: parksmap-90cd-parks-dev.apps.na311.openshift.opentlc.com
       routerName: router
       wildcardPolicy: None
+- description: AppName
+  displayName: AppName
+  name: APPNAME
+  required: true
+  value: "Parksmap (Dev)"
