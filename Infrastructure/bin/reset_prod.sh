@@ -20,6 +20,6 @@ echo "Resetting Parks Production Environment in project ${GUID}-parks-prod to Gr
 # To be Implemented by Student
 
 # Reset all services back to Green selector.
-oc patch svc/mlbparks -p '{"spec":{"selector":{"app":"mlbparks-green"}}}' -n $GUID-parks-prod || true
-oc patch svc/nationalparks -p '{"spec":{"selector":{"app":"nationalparks-green"}}}' -n $GUID-parks-prod || true
-oc patch svc/parksmap -p '{"spec":{"selector":{"app":"parksmap-green"}}}' -n $GUID-parks-prod || true
+oc patch route/mlbparks -p '{"spec":{"to":{"name":"mlbparks-green"}}}' -n $GUID-parks-prod || true
+oc patch route/nationalparks -p '{"spec":{"to":{"name":"nationalparks-green"}}}' -n $GUID-parks-prod || true
+oc patch route/parksmap -p '{"spec":{"to":{"name":"parksmap-green"}}}' -n $GUID-parks-prod || true
