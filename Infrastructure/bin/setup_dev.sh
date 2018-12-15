@@ -14,7 +14,7 @@ echo "Setting up Parks Development Environment in project ${GUID}-parks-dev"
 # To be Implemented by Student
 echo "Ensure we are in the correct namespace: ${GUID}-parks-dev..."
 oc project ${GUID}-parks-dev
-
+cd advdev-blue-green/Infrastructure/bin
 # Setting up permission so Jenkins can do its magic!
 oc policy add-role-to-user view --serviceaccount=default -n ${GUID}-parks-dev
 oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n ${GUID}-parks-dev
