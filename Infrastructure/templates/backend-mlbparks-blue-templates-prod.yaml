@@ -201,11 +201,6 @@ parameters:
   name: ROUTE_NAME
   required: true
   value: mlbparks
-- description: Backend Target 
-  displayName: Backend Target
-  name: ROUTE_BACKEND_NAME
-  required: true
-  value: parksmap-backend
 - description: Main Application Name
   displayName: Main Application Name
   name: MAIN_APPNAME
