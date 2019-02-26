@@ -7,8 +7,8 @@
       "iconClass": "icon-eap",
       "description": "Application template MLBParks backend running on Wildfly and using mongodb",
       "openshift.io/display-name": "MLBParks",
-      "openshift.io/long-description": "MLBParks AdvDev 40h homework.",
-      "openshift.io/provider-display-name": "MLBParks: 40h homework",
+      "openshift.io/long-description": "MLBParks AdvAppDev Microservice."
+      "openshift.io/provider-display-name": "MLBParks: AdvAppDev Microservice ",
       "tags": "40h,90cd,MLBParks"
     }
   },
@@ -46,7 +46,7 @@
       "description": "Git branch/tag reference",
       "displayName": "Git branch/tag reference",
       "name": "GIT_REF",
-      "value": "40h",
+      "value": "master",
       "required": true
     },
     {

@@ -14,8 +14,8 @@ podTemplate(
 ) {
   node('skopeo-pod') {
     // This can be parameterized in pipeline, not gonna do for this static definition.
-    def GUID = '90cd'
-    def CLUSTER = 'na311'
+    def GUID = 'mzali'
+    def CLUSTER = 'local'
     echo "GUID: ${GUID}"
     echo "CLUSTER: ${CLUSTER}"
     
@@ -51,7 +51,7 @@ podTemplate(
       }
       stage("Code Analysis"){
         // Executing coverage test using SonarQube
-        sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube.mzali-sonarqube.svc.cluster.local/ -Dsonar.projectName=${JOB_BASE_NAME}-${devTag}"
+        sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube.mzali-sonarqube.svc.cluster.local:9000/ -Dsonar.projectName=${JOB_BASE_NAME}-${devTag}"
       }
       stage("Publish Artifacts"){
         // Publish binary to Nexus for repository and later use
@@ -62,7 +62,7 @@ podTemplate(
         sh "oc delete bc mlbparks -n ${GUID}-parks-dev || true"
 
         // Defining new build with new output target using Nexus mirror.
-        sh "oc new-build --name=mlbparks --binary=true  jboss-eap70-openshift:1.7 --to=${GUID}-parks-dev/mlbparks:${devTag} -e MAVEN_MIRROR_URL=http://nexus3.mzali-nexus.svc.cluster.local/repository/maven-all-public -n ${GUID}-parks-dev"
+        sh "oc new-build --name=mlbparks --binary=true  jboss-eap70-openshift:1.7 --to=${GUID}-parks-dev/mlbparks:${devTag} -e MAVEN_MIRROR_URL=http://nexus3.mzali-nexus.svc.cluster.local:8081/repository/maven-all-public -n ${GUID}-parks-dev"
 
         // Start to build the new build definition using artifact uploaded to Nexus above.
         sh "oc start-build mlbparks --follow --from-file=http://nexus3.${GUID}-nexus.svc.cluster.local:8081/repository/releases/com/openshift/evg/roadshow/mlbparks/${version}/mlbparks-${version}.war -n ${GUID}-parks-dev"
