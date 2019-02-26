@@ -157,7 +157,7 @@ parameters:
   displayName: Project GUID
   name: GUID
   required: true
-  value: 90cd
+  value: mzali
 - description: AppName
   displayName: AppName
   name: APPNAME

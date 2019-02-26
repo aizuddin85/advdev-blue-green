@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mongo-container
-          image: "registry.access.redhat.com/rhscl/mongodb-34-rhel7:latest"
+          image: "quay.bytewise.com.my/rhscl/mongodb-32-rhel7:latest"
           ports:
             - containerPort: 27017
           args:

@@ -183,7 +183,7 @@ parameters:
   displayName: Project GUID
   name: GUID
   required: true
-  value: 90cd
+  value: mzali
 - description: MongoDB User
   displayName: MongoDB User
   name: MONGODB_USER

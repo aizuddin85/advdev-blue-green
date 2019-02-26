@@ -140,7 +140,7 @@ parameters:
   displayName: Project GUID
   name: GUID
   required: true
-  value: 90cd
+  value: mzali
 - description: Frontend service name
   displayName: Frontend service name
   name: FRONTEND_SERVICENAME

@@ -1,4 +1,4 @@
-MAVEN_MIRROR_URL=http://nexus3-90cd-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public
+MAVEN_MIRROR_URL=http://nexus3.mzali-nexus.svc.cluster.local:8081/repository/maven-all-public
 SOURCE_REPOSITORY_URL=https://github.com/aizuddin85/advdev-blue-green.git
 SOURCE_REPOSITORY_REF=master
 CONTEXT_DIR=./ParksMap

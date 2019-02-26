@@ -46,7 +46,7 @@ objects:
               configMapKeyRef:
                 key: APPNAME
                 name: parksmap
-          image: docker-registry.default.svc:5000/90cd-parks-dev/parksmap:latest
+          image: docker-registry.default.svc:5000/mzali-parks-dev/parksmap:latest
           imagePullPolicy: IfNotPresent
           name: parksmap
           ports:
@@ -120,7 +120,7 @@ objects:
       app: parksmap
     name: parksmap
   spec:
-    host: parksmap-90cd-parks-dev.apps.na311.openshift.opentlc.com
+    host: parksmap-mzali-parks-dev.apps.local.topimerah.net
     port:
       targetPort: 8080-tcp
     to:
@@ -128,15 +128,6 @@ objects:
       name: parksmap
       weight: 100
     wildcardPolicy: None
-  status:
-    ingress:
-    - conditions:
-      - lastTransitionTime: 2018-12-14T16:18:12Z
-        status: "True"
-        type: Admitted
-      host: parksmap-90cd-parks-dev.apps.na311.openshift.opentlc.com
-      routerName: router
-      wildcardPolicy: None
 parameters:
 - description: AppName
   displayName: AppName
