@@ -23,7 +23,7 @@ oc policy add-role-to-user edit system:serviceaccount:${GUID}-jenkins:jenkins -n
 oc new-app --template=mongodb-persistent --param-file=./Infrastructure/bin/params_file/mongodb.params -n ${GUID}-parks-dev
 
 # Create new build and point to Nexus.
-oc new-build --name="mlbparks" --binary=true  jboss-eap70-openshift:1.7 --to=${GUID}-parks-dev/mlbparks:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3-90cd-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public -n ${GUID}-parks-dev
+oc new-build --name="mlbparks" --binary=true  jboss-eap70-openshift:1.7 --to=${GUID}-parks-dev/mlbparks:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3.${GUID}-nexus.svc.cluster.local/repository/maven-all-public -n ${GUID}-parks-dev
 # Send binary build to OCP builder.
 oc start-build mlbparks --from-dir=MLBParks -n ${GUID}-parks-dev --follow  --wait=true
 # Always tag the newest version as latest, so there will be easy to manage DC and switching image when necessary.
@@ -32,7 +32,7 @@ oc tag  ${GUID}-parks-dev/mlbparks:0.0-0 ${GUID}-parks-dev/mlbparks:latest -n ${
 oc process -f ./Infrastructure/templates/mlbparks.yaml | oc create -f - -n ${GUID}-parks-dev
 
 # Create new build and point to Nexus.
-oc new-build --name="nationalparks" --binary=true  redhat-openjdk18-openshift:1.2 --to=${GUID}-parks-dev/nationalparks:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3-90cd-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public -n ${GUID}-parks-dev
+oc new-build --name="nationalparks" --binary=true  redhat-openjdk18-openshift:1.2 --to=${GUID}-parks-dev/nationalparks:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3.${GUID}-nexus.svc.cluster.local/repository/maven-all-public -n ${GUID}-parks-dev
 # Send binary build to OCP builder.
 oc start-build nationalparks --from-dir=Nationalparks -n ${GUID}-parks-dev --follow --wait=true
 # Always tag the newest version as latest, so there will be easy to manage DC and switching image when necessary.
@@ -44,7 +44,7 @@ oc process -f ./Infrastructure/templates/nationalparks.yaml | oc create -f - -n 
 # Parksmap need to discover labeled route. Give view RBAC to default SA.
 oc policy add-role-to-user view --serviceaccount=default -n  ${GUID}-parks-dev
 # Create new build and point to Nexus.
-oc new-build --binary=true --name="parksmap" redhat-openjdk18-openshift:1.2 --to=${GUID}-parks-dev/parksmap:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3-90cd-nexus.apps.na311.openshift.opentlc.com/repository/maven-all-public -n ${GUID}-parks-dev
+oc new-build --binary=true --name="parksmap" redhat-openjdk18-openshift:1.2 --to=${GUID}-parks-dev/parksmap:0.0-0 -e MAVEN_MIRROR_URL=http://nexus3.${GUID}-nexus.svc.cluster.local/repository/maven-all-public -n ${GUID}-parks-dev
 # Send binary build to OCP builder.
 oc start-build parksmap --from-dir=ParksMap -n ${GUID}-parks-dev --follow  --wait=true
 # Always tag the newest version as latest, so there will be easy to manage DC and switching image when necessary
