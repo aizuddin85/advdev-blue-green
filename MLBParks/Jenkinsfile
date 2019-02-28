@@ -80,18 +80,13 @@ podTemplate(
         // Image pushing to Nexus using Skopeo. 
         sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:admin123 docker://docker-registry.default.svc.cluster.local:5000/${GUID}-parks-dev/mlbparks:${devTag} docker://nexus-registry.${GUID}-nexus.svc.cluster.local:5000/mlbparks:${devTag}"
       }
-
       stage("Signing Image"){
         // Image signing
         sh "oc process -f imgsignreqtemplate.yaml -p IMAGE_SIGNING_REQUEST_NAME=mlbparks${devTag} -p IMAGE_STREAM_TAG=mlbparks:${devTag} | oc apply -f- -n ${GUID}-parks-dev"
-
-        sh """
-            sleep 3
-            while true; do
-            status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`
-            echo $status
-            done
-            """
+        // TODO:
+        // 1. Check for signing 'Completed' status before continue next stage.
+        // 2. Implement counter to check for status and failed when timed-out.
+        // oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev
       }
       stage("Blue/Green Production Deployment"){
         // Determine which selector is currently active in the service.
