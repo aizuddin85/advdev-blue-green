@@ -41,4 +41,4 @@ oc process -f ./Infrastructure/templates/backend-nationalparks-blue-templates-pr
 
 # Create Frontend service from template. This will hold as placeholder for Pipeline.
 oc process -f ./Infrastructure/templates/frontend-parksmap-green-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-green.params | oc create -f - -n ${GUID}-parks-prod
-oc process -f ./Infrastructure/templates/frontend-parksmap-blue-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-blue.params | oc create -f - -n ${GUID}-parks-prodarkmaps will monitor only detect new route during route and service creation.
+oc process -f ./Infrastructure/templates/frontend-parksmap-blue-templates-prod.yaml --param-file=./Infrastructure/bin/params_file/parksmap-blue.params | oc create -f - -n ${GUID}-parks-prod

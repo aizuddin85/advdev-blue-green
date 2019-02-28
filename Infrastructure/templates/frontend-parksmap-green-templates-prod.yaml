@@ -162,7 +162,7 @@ objects:
       app: ${ROUTE_NAME}
     name: ${ROUTE_NAME}
   spec:
-    host: ${ROUTE_NAME}-${GUID}-${MAIN_APPNAME}-${ENV}.apps.na311.openshift.opentlc.com
+    host: ${ROUTE_NAME}-${GUID}-${MAIN_APPNAME}-${ENV}.apps.local.topimerah.net
     port:
       targetPort: 8080-tcp
     to:

@@ -175,7 +175,7 @@ objects:
       type: parksmap-backend
     name: mlbparks
   spec:
-    host: mlbparks-${GUID}-parks-dev.apps.na311.openshift.opentlc.com
+    host: mlbparks-${GUID}-parks-dev.local.topimerah.net
     port:
       targetPort: 8080-tcp
     to:

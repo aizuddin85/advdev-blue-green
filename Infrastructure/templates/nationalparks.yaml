@@ -175,7 +175,7 @@ objects:
       type: parksmap-backend
     name: nationalparks
   spec:
-    host: nationalparks-${GUID}-parks-dev.apps.na311.openshift.opentlc.com
+    host: nationalparks-${GUID}-parks-dev.apps.local.topimerah.net
     port:
       targetPort: 8080-tcp
     to:
