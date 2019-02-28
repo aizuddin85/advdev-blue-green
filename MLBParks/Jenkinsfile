@@ -91,7 +91,7 @@ podTemplate(
             if [ $status == "Completed" ]; then
               break
             else
-              counterCycle=$(($counterCycle+1))
+              counterCycle=\$(($counterCycle+1))
               if [ $counterCycle -eq 10 ]; then
                 echo "ERROR: Signing did not return status 'Completed' when timer timed-out!"
                   exit 1
