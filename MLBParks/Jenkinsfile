@@ -88,6 +88,7 @@ podTemplate(
         sh """
             while true; do
             status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`;
+            echo "Singing progress: $status"
             if [ $status == "Completed" ]; then
               break
             else
