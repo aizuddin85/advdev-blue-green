@@ -86,20 +86,10 @@ podTemplate(
         sh "oc process -f imgsignreqtemplate.yaml -p IMAGE_SIGNING_REQUEST_NAME=mlbparks${devTag} -p IMAGE_STREAM_TAG=mlbparks:${devTag} | oc apply -f- -n ${GUID}-parks-dev"
 
         sh """
+            sleep 3
             while true; do
-            status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`;
-            echo "Singing progress: $status"
-            if [ $status == "Completed" ]; then
-              break
-            else
-              counterCycle=\$(($counterCycle+1))
-              if [ $counterCycle -eq 10 ]; then
-                echo "ERROR: Signing did not return status 'Completed' when timer timed-out!"
-                  exit 1
-              else
-                sleep 10
-              fi
-            fi
+            status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`
+            echo $status
             done
             """
       }
