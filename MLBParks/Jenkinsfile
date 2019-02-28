@@ -41,6 +41,8 @@ podTemplate(
       def prodTag = "${version}"
       def destApp   = "mlbparks-green"
       def activeApp = ""
+      def counterCycle = 0
+
       stage("Building Target"){
         // Start to build binary from the source code
         sh "${mvnCmd} clean package -DskipTests=true"
@@ -77,6 +79,28 @@ podTemplate(
       stage("Copy Image to Nexus"){
         // Image pushing to Nexus using Skopeo. 
         sh "skopeo copy --src-tls-verify=false --dest-tls-verify=false --src-creds openshift:\$(oc whoami -t) --dest-creds admin:admin123 docker://docker-registry.default.svc.cluster.local:5000/${GUID}-parks-dev/mlbparks:${devTag} docker://nexus-registry.${GUID}-nexus.svc.cluster.local:5000/mlbparks:${devTag}"
+      }
+
+      stage("Signing Image"){
+        // Image signing
+        sh "oc create -f imgsignreqtemplate.yaml -p IMAGE_SIGNING_REQUEST_NAME=mlbparks${devTag} -p IMAGE_STREAM_TAG=mlbparks:${devTag} | oc apply -f- -n ${GUID}-parks-dev"
+
+        sh "while true
+            do
+            status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`;
+            if [ $status == "Completed" ]; then
+              break
+            else
+              counterCycle=$(($counterCycle+1))
+              if [ $counterCycle -eq 10 ]; then
+                echo "ERROR: Signing did not return status 'Completed' when timer timed-out!"
+                  exit 1
+              else
+                sleep 10
+              fi
+            fi
+            done
+            "
       }
       stage("Blue/Green Production Deployment"){
         // Determine which selector is currently active in the service.
