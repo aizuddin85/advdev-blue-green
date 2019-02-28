@@ -85,8 +85,8 @@ podTemplate(
         // Image signing
         sh "oc create -f imgsignreqtemplate.yaml -p IMAGE_SIGNING_REQUEST_NAME=mlbparks${devTag} -p IMAGE_STREAM_TAG=mlbparks:${devTag} | oc apply -f- -n ${GUID}-parks-dev"
 
-        sh "while true
-            do
+        sh """
+            while true; do
             status=`oc get ImageSigningRequest -o jsonpath='{ .items[0].status.phase }' -n ${GUID}-parks-dev`;
             if [ $status == "Completed" ]; then
               break
@@ -100,7 +100,7 @@ podTemplate(
               fi
             fi
             done
-            "
+            """
       }
       stage("Blue/Green Production Deployment"){
         // Determine which selector is currently active in the service.
